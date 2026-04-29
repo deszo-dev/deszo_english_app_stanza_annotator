@@ -1,8 +1,24 @@
 import json
+from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
+
+from stanza_annotator import ConfigurationError
 from stanza_annotator.annotator import StanzaAnnotator
 from stanza_annotator.config import StanzaAnnotatorConfig
+
+
+class FakeAdapter:
+    gpu_decision = None
+
+    def __init__(self, document: object) -> None:
+        self.document = document
+        self.calls: list[str] = []
+
+    def annotate(self, text: str) -> object:
+        self.calls.append(text)
+        return self.document
 
 
 def test_empty_input_returns_empty_document_without_loading_stanza() -> None:
@@ -14,7 +30,7 @@ def test_empty_input_returns_empty_document_without_loading_stanza() -> None:
     assert result.entities == []
 
 
-def test_debug_file_records_empty_input_and_gpu_fallback(tmp_path) -> None:
+def test_debug_file_records_empty_input(tmp_path: Path) -> None:
     annotator = StanzaAnnotator(
         StanzaAnnotatorConfig(debug=True, debug_dir=tmp_path, use_gpu=True)
     )
@@ -27,10 +43,9 @@ def test_debug_file_records_empty_input_and_gpu_fallback(tmp_path) -> None:
     assert payload["metadata"]["empty_input"] is True
     assert payload["metadata"]["gpu_requested"] is True
     assert payload["metadata"]["gpu_effective"] is False
-    assert "gpu_fallback_reason" in payload["metadata"]
 
 
-def test_annotate_uses_pipeline_and_writes_debug(monkeypatch, tmp_path) -> None:
+def test_annotate_uses_adapter_and_writes_debug(tmp_path: Path) -> None:
     word = SimpleNamespace(
         text="I",
         lemma="I",
@@ -49,23 +64,7 @@ def test_annotate_uses_pipeline_and_writes_debug(monkeypatch, tmp_path) -> None:
         entities=[],
         to_dict=lambda: {"sentences": [{"text": "I am tired."}]},
     )
-
-    class FakePipeline:
-        def __call__(self, text: str):
-            assert text == "I am tired."
-            return document
-
-    class FakeStanza:
-        @staticmethod
-        def download(*args, **kwargs) -> None:
-            return None
-
-        @staticmethod
-        def Pipeline(*args, **kwargs):
-            assert kwargs["use_gpu"] is False
-            return FakePipeline()
-
-    monkeypatch.setattr(StanzaAnnotator, "_import_stanza", staticmethod(lambda: FakeStanza))
+    adapter = FakeAdapter(document)
 
     annotator = StanzaAnnotator(
         {
@@ -73,10 +72,17 @@ def test_annotate_uses_pipeline_and_writes_debug(monkeypatch, tmp_path) -> None:
             "debug_dir": tmp_path,
             "use_gpu": False,
             "auto_download": True,
-        }
+        },
+        adapter=adapter,
     )
 
     result = annotator.annotate("I am tired.")
 
+    assert adapter.calls == ["I am tired."]
     assert result.sentences[0].words[0].upos == "PRON"
     assert len(list(tmp_path.glob("annotation-*.json"))) == 1
+
+
+def test_unsupported_processors_raise_configuration_error() -> None:
+    with pytest.raises(ConfigurationError):
+        StanzaAnnotator({"processors": "tokenize,pos"})

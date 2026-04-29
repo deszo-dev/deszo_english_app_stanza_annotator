@@ -19,7 +19,10 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-  "pytest>=8,<9"
+  "black>=24,<26",
+  "mypy>=1.10,<2",
+  "pytest>=8,<9",
+  "ruff>=0.5,<1"
 ]
 
 [project.scripts]
@@ -30,3 +33,21 @@ include = ["stanza_annotator*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.black]
+line-length = 88
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_unused_configs = true
+
+[[tool.mypy.overrides]]
+module = ["stanza", "torch"]
+ignore_missing_imports = true

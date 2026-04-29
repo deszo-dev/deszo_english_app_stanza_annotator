@@ -9,3 +9,8 @@ venv/
 debug/
 *.annotations.json
 *.txt
+*.glob
+*.vo
+*.vok
+*.vos
+.*.aux

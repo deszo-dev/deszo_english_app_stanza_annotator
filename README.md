@@ -74,11 +74,14 @@ The module is designed for English text:
 interface StanzaAnnotatorConfig {
   language: "en";
   use_gpu?: boolean;
-  processors?: string;
+  processors?: "tokenize,mwt,pos,lemma,depparse,ner";
   tokenize_pretokenized?: boolean;
+  auto_download?: boolean;
+  debug?: boolean;
+  debug_dir?: string;
   logging?: {
     enabled: boolean;
-    level: "info" | "debug";
+    level: "debug" | "info" | "warning" | "error";
   };
 }
 ```
@@ -102,9 +105,11 @@ interface AnnotatedDocument {
 
 The output follows the structure of a Stanza document and includes sentences, tokens, words, lemmas, POS tags, dependency information, character offsets, and named entities.
 
+Empty or whitespace-only input is valid and returns an empty document.
+
 ### Debugging
 
-The module should support a debug mode that helps inspect:
+The module supports a debug mode that writes JSON traces to `debug_dir` and helps inspect:
 
 - raw annotations;
 - tokens and dependency relations;
@@ -197,11 +202,14 @@ stanza-annotate alice.txt --output alice.annotations.json --debug --debug-dir de
 interface StanzaAnnotatorConfig {
   language: "en";
   use_gpu?: boolean;
-  processors?: string;
+  processors?: "tokenize,mwt,pos,lemma,depparse,ner";
   tokenize_pretokenized?: boolean;
+  auto_download?: boolean;
+  debug?: boolean;
+  debug_dir?: string;
   logging?: {
     enabled: boolean;
-    level: "info" | "debug";
+    level: "debug" | "info" | "warning" | "error";
   };
 }
 ```
@@ -225,9 +233,11 @@ interface AnnotatedDocument {
 
 Выходная структура совместима с представлением Stanza document и включает предложения, токены, слова, леммы, POS-теги, dependency-информацию, символьные offsets и именованные сущности.
 
+Пустой или состоящий только из whitespace input валиден и возвращает пустой документ.
+
 ### Отладка
 
-Модуль должен поддерживать debug-режим, который помогает проверять:
+Модуль поддерживает debug-режим, который пишет JSON-трассы в `debug_dir` и помогает проверять:
 
 - raw-аннотации;
 - токены и dependency-связи;
