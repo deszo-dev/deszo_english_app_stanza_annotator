@@ -698,3 +698,26 @@ The module is ready when:
 - Coq specification compiles in CI;
 - Coq theorem ↔ Python function mapping is maintained;
 - implementation tests check the documented invariants.
+
+## 15. Integration addition for grammar_extractor
+
+For cleaner end-to-end debug collection, the CLI SHOULD support optional `--debug-dir` in addition to `--debug` / `-d`.
+
+```text
+stanza-annotator \
+  --input clean_text.txt \
+  --output annotated_document.json \
+  --debug \
+  --debug-dir debug/stanza_annotator
+```
+
+Rules:
+
+- `--debug-dir` writes side-car debug artifacts only;
+- debug side files may include raw Stanza projection snapshots, token/dependency traces and adapter diagnostics;
+- `AnnotatedDocument` must remain unchanged compared with non-debug mode;
+- no debug payload is written to `stdout`;
+- if `--output` is set, `stdout` remains empty;
+- debug artifacts must be safe-by-default and gated by explicit debug mode.
+
+This addition is backward-compatible with the existing CLI contract and exists mainly so `grammar_extractor` can collect all dependency debug data into one debug bundle.

@@ -86,3 +86,35 @@ def test_annotate_uses_adapter_and_writes_debug(tmp_path: Path) -> None:
 def test_unsupported_processors_raise_configuration_error() -> None:
     with pytest.raises(ConfigurationError):
         StanzaAnnotator({"processors": "tokenize,pos"})
+
+
+def test_debug_does_not_change_returned_document(tmp_path: Path) -> None:
+    word = SimpleNamespace(
+        text="I",
+        lemma="I",
+        upos="PRON",
+        xpos=None,
+        feats="Person=1|Number=Sing",
+        head=2,
+        deprel="nsubj",
+        start_char=0,
+        end_char=1,
+    )
+    token = SimpleNamespace(text="I", words=[word])
+    sentence = SimpleNamespace(text="I am tired.", tokens=[token], words=[word])
+    document = SimpleNamespace(
+        sentences=[sentence],
+        entities=[],
+        to_dict=lambda: {"sentences": [{"text": "I am tired."}]},
+    )
+
+    plain = StanzaAnnotator(
+        {"debug": False, "use_gpu": False},
+        adapter=FakeAdapter(document),
+    ).annotate("I am tired.")
+    debug = StanzaAnnotator(
+        {"debug": True, "debug_dir": tmp_path, "use_gpu": False},
+        adapter=FakeAdapter(document),
+    ).annotate("I am tired.")
+
+    assert plain.model_dump(mode="json") == debug.model_dump(mode="json")
