@@ -1,28 +1,17 @@
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import os
 import sys
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from pathlib import Path
-from typing import Protocol
-
-from pydantic import ValidationError
+from typing import Any, Protocol
 
 from stanza_annotator.annotator import StanzaAnnotator
-from stanza_annotator.config import (
-    DEFAULT_PROCESSORS,
-    LoggingConfig,
-    StanzaAnnotatorConfig,
-)
-from stanza_annotator.errors import (
-    AnnotationError,
-    ConfigurationError,
-    InputValidationError,
-    StanzaRuntimeError,
-)
-from stanza_annotator.models import AnnotatedDocument
+from stanza_annotator.config import LoggingConfig, StanzaAnnotatorConfig
+from stanza_annotator.runtime_metadata import get_module_version
 
 LOGGER = logging.getLogger("stanza_annotator")
 
@@ -30,7 +19,11 @@ AnnotatorFactory = Callable[[StanzaAnnotatorConfig], "_Annotator"]
 
 
 class _Annotator(Protocol):
-    def annotate(self, text: str) -> AnnotatedDocument:  # pragma: no cover - protocol
+    def annotate_epub_result(
+        self,
+        epub_result: dict,
+        config: dict | None = None,
+    ) -> dict[str, Any]:  # pragma: no cover - protocol
         ...
 
 
@@ -40,126 +33,188 @@ def main(
     annotator_factory: Callable[[StanzaAnnotatorConfig], _Annotator] | None = None,
 ) -> int:
     parser = _build_parser()
-    args = parser.parse_args(argv)
-
+    try:
+        args = parser.parse_args(argv)
+    except SystemExit as exc:
+        return int(exc.code)
     factory = annotator_factory or (lambda cfg: StanzaAnnotator(cfg))
 
+    if args.command != "annotate":
+        parser.print_help(sys.stderr)
+        return 2
+
+    if args.input == "-" and args.config == "-":
+        _write_error("cannot read both input and config from stdin")
+        return 2
+
     try:
-        config = _resolve_config(args)
-        _configure_logging(config)
-        LOGGER.info("annotation cli started")
+        epub_result = _read_json(args.input)
+    except (json.JSONDecodeError, OSError) as exc:
+        return _write_failed_output(
+            result=_parsing_failure_result("invalid_input", "Malformed input JSON."),
+            output_path=args.output,
+            exit_code=1,
+            stderr_message=str(exc),
+        )
 
-        text = _read_input(args.input)
-        document = factory(config).annotate(text)
-        output = document.model_dump_json(indent=2) + "\n"
+    try:
+        user_config = _read_json(args.config) if args.config else {}
+    except (json.JSONDecodeError, OSError) as exc:
+        return _write_failed_output(
+            result=_parsing_failure_result("invalid_config", "Malformed config JSON."),
+            output_path=args.output,
+            exit_code=4,
+            stderr_message=str(exc),
+        )
 
-        if args.output:
-            args.output.write_text(output, encoding="utf-8")
-        else:
-            sys.stdout.write(output)
-        LOGGER.info("annotation cli finished")
-        return 0
-    except (ConfigurationError, InputValidationError, ValidationError, OSError) as exc:
-        _write_error(str(exc))
-        return 1
-    except StanzaRuntimeError as exc:
-        _write_error(str(exc))
-        return 2
-    except AnnotationError as exc:
-        _write_error(str(exc))
-        return 2
+    if not isinstance(user_config, Mapping):
+        user_config = {}
+    user_config = dict(user_config)
+    if args.include_debug:
+        user_config["include_debug"] = True
+
+    try:
+        config = StanzaAnnotatorConfig.model_validate(user_config)
     except Exception:
-        _write_error("unexpected system error")
-        return 2
+        config = StanzaAnnotatorConfig()
+
+    _configure_logging(config.logging)
+    result = factory(config).annotate_epub_result(epub_result, user_config)
+    payload = json.dumps(
+        result,
+        ensure_ascii=False,
+        indent=2 if args.pretty else None,
+    ) + "\n"
+
+    if args.output in {None, "-"}:
+        sys.stdout.write(payload)
+    else:
+        output_path = Path(args.output)
+        write_status = _write_output_file(output_path, payload)
+        if write_status is not None:
+            _write_error(write_status)
+            return 3
+
+    if result["status"] == "succeeded":
+        return 0
+    if result["error"]["code"] == "invalid_config":
+        return 4
+    if result["error"]["code"] == "internal_error":
+        return 99
+    return 1
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        prog="stanza-annotate",
-        description="Annotate prepared UTF-8 English text with Stanza.",
+    parser = argparse.ArgumentParser(prog="stanza-annotator")
+    subparsers = parser.add_subparsers(dest="command")
+    annotate = subparsers.add_parser("annotate")
+    annotate.add_argument("input", help="Input JSON path or - for stdin.")
+    annotate.add_argument("--output", help="Output path or - for stdout.")
+    annotate.add_argument("--config", help="Optional config JSON path or - for stdin.")
+    annotate.add_argument("--pretty", action="store_true")
+    annotate.add_argument("--include-debug", action="store_true")
+    annotate.add_argument("--debug-dir", help="CLI-only debug directory.")
+    annotate.add_argument(
+        "--version",
+        action="version",
+        version=get_module_version("stanza-annotator"),
     )
-    parser.add_argument(
-        "input",
-        nargs="?",
-        type=Path,
-        help="Input UTF-8 text file. Reads stdin when omitted.",
-    )
-    parser.add_argument(
-        "-o",
-        "--output",
-        type=Path,
-        help="Output JSON file. Writes stdout when omitted.",
-    )
-    parser.add_argument("--language", default=None)
-    parser.add_argument("--processors", default=None)
-    parser.add_argument("--debug", "-d", action="store_true")
-    parser.add_argument("--debug-dir", type=Path, default=Path("debug"))
-    parser.add_argument("--tokenize-pretokenized", action="store_true")
-    parser.add_argument("--no-download", action="store_true")
-    parser.add_argument("--log-level", choices=["debug", "info", "warning", "error"])
-
-    gpu = parser.add_mutually_exclusive_group()
-    gpu.add_argument("--use-gpu", dest="use_gpu", action="store_true", default=None)
-    gpu.add_argument("--no-gpu", dest="use_gpu", action="store_false")
     return parser
 
 
-def _read_input(path: Path | None) -> str:
-    if path is None:
-        return sys.stdin.read()
-    return path.read_text(encoding="utf-8")
-
-
-def _resolve_config(args: argparse.Namespace) -> StanzaAnnotatorConfig:
-    debug_enabled = args.debug or _env_bool("STANZA_ANNOTATOR_DEBUG", default=False)
-    if args.log_level is not None:
-        log_level = args.log_level
-    elif debug_enabled:
-        log_level = "debug"
+def _read_json(path_arg: str | None) -> object:
+    if path_arg == "-":
+        raw = sys.stdin.read()
     else:
-        log_level = os.getenv("STANZA_ANNOTATOR_LOG_LEVEL", "info")
-    logging_config = LoggingConfig.model_validate(
-        {
-            "enabled": _env_bool("STANZA_ANNOTATOR_LOGGING", default=True),
-            "level": log_level,
-        }
-    )
-    return StanzaAnnotatorConfig.model_validate(
-        {
-            "language": args.language or os.getenv("STANZA_ANNOTATOR_LANGUAGE", "en"),
-            "processors": args.processors
-            or os.getenv("STANZA_ANNOTATOR_PROCESSORS", DEFAULT_PROCESSORS),
-            "use_gpu": (
-                args.use_gpu
-                if args.use_gpu is not None
-                else _env_bool("STANZA_ANNOTATOR_USE_GPU", default=True)
-            ),
-            "tokenize_pretokenized": args.tokenize_pretokenized
-            or _env_bool("STANZA_ANNOTATOR_TOKENIZE_PRETOKENIZED", default=False),
-            "auto_download": not args.no_download
-            and _env_bool("STANZA_ANNOTATOR_AUTO_DOWNLOAD", default=True),
-            "debug": debug_enabled,
-            "debug_dir": args.debug_dir,
-            "logging": logging_config,
-        }
-    )
+        raw = Path(path_arg).read_text(encoding="utf-8")
+    return json.loads(raw)
 
 
-def _env_bool(name: str, *, default: bool) -> bool:
-    value = os.getenv(name)
-    if value is None:
-        return default
-    return value.lower() in {"1", "true", "yes", "on"}
+def _write_output_file(path: Path, payload: str) -> str | None:
+    if path.exists() and path.is_dir():
+        return "output path is a directory"
+    if path.exists() and path.is_symlink():
+        return "output symlink is not allowed"
+    parent = path.parent
+    if not parent.exists() or not parent.is_dir():
+        return "output parent directory does not exist"
+
+    temp_path = parent / f".{path.name}.tmp"
+    try:
+        temp_path.write_text(payload, encoding="utf-8")
+        os.replace(temp_path, path)
+    except OSError:
+        if temp_path.exists():
+            try:
+                temp_path.unlink()
+            except OSError:
+                pass
+        return "output write failed"
+    return None
 
 
-def _configure_logging(config: StanzaAnnotatorConfig) -> None:
-    if not config.logging.enabled:
+def _parsing_failure_result(code: str, message: str) -> dict[str, Any]:
+    return {
+        "schema_version": "stanza_annotator.v2.0",
+        "status": "failed",
+        "error": {
+            "code": code,
+            "message": message,
+            "recoverable": False,
+        },
+        "diagnostics": [],
+        "annotation": {
+            "annotator_version": get_module_version("stanza-annotator"),
+            "stanza_version": "1.8.2",
+            "started_at": "2000-01-01T00:00:00Z",
+            "finished_at": "2000-01-01T00:00:00Z",
+            "duration_ms": 0,
+            "config": StanzaAnnotatorConfig().model_dump(mode="json"),
+            "summary": {
+                "text_unit_count": 0,
+                "annotated_text_unit_count": 0,
+                "skipped_text_unit_count": 0,
+                "chapter_count": 0,
+                "front_matter_section_count": 0,
+                "back_matter_section_count": 0,
+                "paragraph_count": 0,
+                "footnote_count": 0,
+                "sentence_count": 0,
+                "token_count": 0,
+                "word_count": 0,
+                "entity_count": 0,
+                "warning_count": 0,
+                "error_count": 1,
+            },
+        },
+    }
+
+
+def _write_failed_output(
+    *,
+    result: dict[str, Any],
+    output_path: str | None,
+    exit_code: int,
+    stderr_message: str,
+) -> int:
+    payload = json.dumps(result, ensure_ascii=False) + "\n"
+    if output_path in {None, "-"}:
+        sys.stdout.write(payload)
+        return exit_code
+    write_status = _write_output_file(Path(output_path), payload)
+    if write_status is not None:
+        _write_error(stderr_message)
+        return 3
+    return exit_code
+
+
+def _configure_logging(config: LoggingConfig) -> None:
+    if not config.enabled:
         logging.disable(logging.CRITICAL)
         return
-
     logging.disable(logging.NOTSET)
     logging.basicConfig(
-        level=config.logging.level.upper(),
+        level=config.level.upper(),
         stream=sys.stderr,
         format="%(levelname)s:%(name)s:%(message)s",
         force=True,

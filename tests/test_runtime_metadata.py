@@ -21,6 +21,8 @@ def test_stanza_annotator_exposes_runtime_metadata() -> None:
         assert stage_metadata.output_schema_version
         assert stage_metadata.config_contract_version
         assert stage_metadata.module_version
+        assert stage_metadata.output_schema_version == "stanza_annotator.v2.0"
+        assert stage_metadata.config_contract_version == "stanza_annotator_config.v2.0"
 
 
 def test_local_stage_source_fingerprint_is_present() -> None:

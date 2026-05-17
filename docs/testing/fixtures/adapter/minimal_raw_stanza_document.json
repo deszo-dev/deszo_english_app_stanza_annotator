@@ -1,0 +1,61 @@
+{
+  "text_unit_id": "chapter_001:text",
+  "sentences": [
+    {
+      "text": "Alice sees Bob.",
+      "start_char": 0,
+      "end_char": 15,
+      "tokens": [
+        {
+          "text": "Alice",
+          "start_char": 0,
+          "end_char": 5,
+          "words": [
+            {
+              "text": "Alice",
+              "lemma": "Alice",
+              "upos": "PROPN",
+              "deprel": "nsubj",
+              "head": 2,
+              "start_char": 0,
+              "end_char": 5
+            }
+          ]
+        },
+        {
+          "text": "sees",
+          "start_char": 6,
+          "end_char": 10,
+          "words": [
+            {
+              "text": "sees",
+              "lemma": "see",
+              "upos": "VERB",
+              "deprel": "root",
+              "head": 0,
+              "start_char": 6,
+              "end_char": 10
+            }
+          ]
+        },
+        {
+          "text": "Bob",
+          "start_char": 11,
+          "end_char": 14,
+          "words": [
+            {
+              "text": "Bob",
+              "lemma": "Bob",
+              "upos": "PROPN",
+              "deprel": "obj",
+              "head": 2,
+              "start_char": 11,
+              "end_char": 14
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "entities": []
+}

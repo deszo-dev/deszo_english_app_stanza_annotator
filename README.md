@@ -1,257 +1,132 @@
-# stanza_annotator
+# `stanza_annotator`
 
-## English
+`stanza_annotator` annotates structured English EPUB content produced by `epub_content_extractor.v3.0` and returns a `stanza_annotator.v2.0` result with:
 
-`stanza_annotator` is a focused module for producing linguistic annotations for prepared English text with [Stanza](https://stanfordnlp.github.io/stanza/).
+- preserved EPUB structure;
+- per-text-unit Stanza annotations;
+- upstream provenance;
+- diagnostics and summary counters;
+- optional debug payload.
 
-The module configures a Stanza pipeline, runs annotation, and returns structured data that can be used by downstream analysis tools in the Deszo English App ecosystem.
+The official module contract is documented in:
 
-### Scope
+- [architecture](docs/architecture/stanza_annotator_architecture.md)
+- [testing guide](docs/testing/stanza_annotator_testing.md)
+- [config schema](docs/architecture/schema/stanza_annotator_config.v2.0.schema.json)
+- [output schema](docs/architecture/schema/stanza_annotator.v2.0.schema.json)
 
-`stanza_annotator` is responsible for:
-
-- configuring the Stanza pipeline;
-- annotating prepared UTF-8 text;
-- returning a structured document representation;
-- acting as a debug checkpoint for annotation quality.
-
-It is not responsible for text preprocessing. Input text must already be cleaned and prepared before it is passed to this module.
-
-Out of scope:
-
-- text cleanup;
-- quote normalization;
-- OCR error correction;
-- manual sentence splitting;
-- `ftfy` or other Unicode repair steps.
-
-### Default Pipeline
-
-The default Stanza processor configuration is:
-
-```text
-tokenize,mwt,pos,lemma,depparse,ner
-```
-
-### Installation
+## Install
 
 ```bash
 pip install -e ".[dev]"
 ```
 
-The module automatically downloads the required Stanza English models on first use unless `auto_download` is disabled.
+Stanza models are downloaded automatically on first real annotation run unless `auto_download=false`.
 
-### Python Usage
-
-```python
-from stanza_annotator import StanzaAnnotator
-
-annotator = StanzaAnnotator()
-doc = annotator.annotate("I am tired.")
-
-for sentence in doc.sentences:
-    for word in sentence.words:
-        print(word.text, word.lemma, word.upos)
-```
-
-### CLI Usage
-
-Without installing the package, run the CLI through Python from the repository root:
-
-```bash
-python -m stanza_annotator alice.txt --output alice.annotations.json --debug --debug-dir debug
-```
-
-After editable installation, the console command is available:
-
-```bash
-stanza-annotate alice.txt --output alice.annotations.json --debug --debug-dir debug
-```
-
-The module is designed for English text:
-
-```ts
-interface StanzaAnnotatorConfig {
-  language: "en";
-  use_gpu?: boolean;
-  processors?: "tokenize,mwt,pos,lemma,depparse,ner";
-  tokenize_pretokenized?: boolean;
-  auto_download?: boolean;
-  debug?: boolean;
-  debug_dir?: string;
-  logging?: {
-    enabled: boolean;
-    level: "debug" | "info" | "warning" | "error";
-  };
-}
-```
-
-### Input And Output
-
-Input:
-
-```ts
-type InputText = string; // UTF-8
-```
-
-Output:
-
-```ts
-interface AnnotatedDocument {
-  sentences: Sentence[];
-  entities: Entity[];
-}
-```
-
-The output follows the structure of a Stanza document and includes sentences, tokens, words, lemmas, POS tags, dependency information, character offsets, and named entities.
-
-Empty or whitespace-only input is valid and returns an empty document.
-
-### Debugging
-
-The module supports a debug mode that writes JSON traces to `debug_dir` and helps inspect:
-
-- raw annotations;
-- tokens and dependency relations;
-- POS and morphology quality;
-- output differences between configurations;
-- reproducible annotation bugs.
-
-### Documentation
-
-- Russian architecture document: [docs/architecture.md](docs/architecture.md)
-- English architecture document: [docs/architecture.en.md](docs/architecture.en.md)
-
-### Usage Policy
-
-This project is published for non-commercial use. Commercial use is not permitted without explicit permission from the project owner.
-
-See [LICENSE](LICENSE) for the exact terms. A non-commercial restriction usually means the project is source-available rather than open source under the OSI definition.
-
-## Русский
-
-`stanza_annotator` - это специализированный модуль для получения лингвистических аннотаций подготовленного английского текста с помощью [Stanza](https://stanfordnlp.github.io/stanza/).
-
-Модуль настраивает pipeline Stanza, выполняет аннотирование и возвращает структурированные данные для дальнейшего анализа в экосистеме Deszo English App.
-
-### Область ответственности
-
-`stanza_annotator` отвечает за:
-
-- настройку Stanza pipeline;
-- аннотирование подготовленного UTF-8 текста;
-- возврат структурированного представления документа;
-- роль контрольной точки для отладки качества аннотаций.
-
-Модуль не занимается preprocessing текста. Входной текст должен быть очищен и подготовлен до вызова `stanza_annotator`.
-
-Не входит в область ответственности:
-
-- очистка текста;
-- нормализация кавычек;
-- исправление OCR-ошибок;
-- ручное разбиение на предложения;
-- `ftfy` или другие Unicode-исправления.
-
-### Pipeline По Умолчанию
-
-Базовая конфигурация Stanza processors:
-
-```text
-tokenize,mwt,pos,lemma,depparse,ner
-```
-
-### Установка
-
-```bash
-pip install -e ".[dev]"
-```
-
-Модуль автоматически скачивает нужные Stanza-модели для английского языка при первом использовании, если `auto_download` не отключен.
-
-### Использование В Python
+## Python API
 
 ```python
+import json
+
 from stanza_annotator import StanzaAnnotator
 
-annotator = StanzaAnnotator()
-doc = annotator.annotate("I am tired.")
+epub_result = json.loads(open("epub_content.json", "r", encoding="utf-8").read())
 
-for sentence in doc.sentences:
-    for word in sentence.words:
-        print(word.text, word.lemma, word.upos)
+annotator = StanzaAnnotator({"use_gpu": False})
+result = annotator.annotate_epub_result(
+    epub_result,
+    {
+        "content_selection": {"mode": "chapter_text_only"},
+        "batch_size": 8,
+    },
+)
+
+print(result["status"])
+print(result["annotation"]["summary"]["sentence_count"])
 ```
 
-### Использование CLI
+Official document-level API:
 
-Без установки пакета CLI можно запускать через Python из корня репозитория:
+- `StanzaAnnotator.annotate_epub_result(epub_result, config=None)`
+
+Compatibility helper retained for low-level use:
+
+- `StanzaAnnotator.annotate(text)` for plain prepared text
+
+## CLI
 
 ```bash
-python -m stanza_annotator alice.txt --output alice.annotations.json --debug --debug-dir debug
+stanza-annotator annotate epub_content.json --pretty
 ```
 
-После editable-установки становится доступна console-команда:
+With explicit config and debug sidecar output:
 
 ```bash
-stanza-annotate alice.txt --output alice.annotations.json --debug --debug-dir debug
+stanza-annotator annotate \
+  epub_content.json \
+  --config annotator_config.json \
+  --output annotation.json \
+  --include-debug \
+  --debug-dir debug \
+  --pretty
 ```
 
-Модуль рассчитан на английский язык:
+CLI rules:
 
-```ts
-interface StanzaAnnotatorConfig {
-  language: "en";
-  use_gpu?: boolean;
-  processors?: "tokenize,mwt,pos,lemma,depparse,ner";
-  tokenize_pretokenized?: boolean;
-  auto_download?: boolean;
-  debug?: boolean;
-  debug_dir?: string;
-  logging?: {
-    enabled: boolean;
-    level: "debug" | "info" | "warning" | "error";
-  };
-}
-```
+- positional `INPUT.json` reads `epub_content_extractor.v3.0` JSON.
+- `--config PATH` reads annotator config JSON.
+- `INPUT.json = -` and `--config -` cannot be used together.
+- `--include-debug` affects only top-level debug payload and must not change production annotation fields.
+- `--debug-dir` is CLI-only and is not part of the library config contract.
+- stdout stays machine-readable JSON unless `--output` is used.
 
-### Вход И Выход
+Exit codes:
 
-Вход:
+- `0`: success
+- `1`: structured failed result for input/runtime/domain failures
+- `2`: CLI usage error
+- `3`: output write failure
+- `4`: invalid config
 
-```ts
-type InputText = string; // UTF-8
-```
+## Config Summary
 
-Выход:
+Main config fields:
 
-```ts
-interface AnnotatedDocument {
-  sentences: Sentence[];
-  entities: Entity[];
-}
-```
+- `language`: must be `"en"`
+- `processors`: must be `"tokenize,mwt,pos,lemma,depparse,ner"`
+- `use_gpu`
+- `auto_download`
+- `content_selection`
+- `batch_size`
+- `max_text_unit_chars`
+- `max_output_json_bytes`
+- `include_debug`
+- `logging`
 
-Выходная структура совместима с представлением Stanza document и включает предложения, токены, слова, леммы, POS-теги, dependency-информацию, символьные offsets и именованные сущности.
+Supported `content_selection.mode` values:
 
-Пустой или состоящий только из whitespace input валиден и возвращает пустой документ.
+- `chapter_text_only`
+- `canonical_from_epub_config`
+- `all_readable`
+- `chapters_only`
+- `custom`
 
-### Отладка
+## Output Summary
 
-Модуль поддерживает debug-режим, который пишет JSON-трассы в `debug_dir` и помогает проверять:
+Successful results contain:
 
-- raw-аннотации;
-- токены и dependency-связи;
-- качество POS и morphology;
-- различия output между конфигурациями;
-- воспроизводимые ошибки аннотирования.
+- `schema_version: "stanza_annotator.v2.0"`
+- `status: "succeeded"`
+- `document`
+- `diagnostics`
+- `annotation`
 
-### Документация
+Failed results contain:
 
-- Русский документ архитектуры: [docs/architecture.md](docs/architecture.md)
-- Английский документ архитектуры: [docs/architecture.en.md](docs/architecture.en.md)
+- `schema_version: "stanza_annotator.v2.0"`
+- `status: "failed"`
+- `error`
+- `diagnostics`
+- `annotation`
 
-### Условия Использования
-
-Проект публикуется для некоммерческого использования. Коммерческое использование запрещено без явного разрешения владельца проекта.
-
-Точные условия описаны в [LICENSE](LICENSE). Ограничение на коммерческое использование обычно означает, что проект является source-available, а не open source в смысле OSI.
+By default the module annotates only `book.chapters[].text`. `chapters[].paragraphs` is not a supported upstream v3.0 production field and is not emitted in output.

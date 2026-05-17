@@ -1,0 +1,532 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deszo.local/schema/stanza_annotator_diagnostics.v2.0.schema.json",
+  "title": "StanzaAnnotatorDiagnostic Registry v2.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "code",
+    "severity",
+    "message"
+  ],
+  "properties": {
+    "code": {
+      "enum": [
+        "text_unit_selected",
+        "text_unit_skipped_by_config",
+        "text_unit_empty",
+        "text_unit_too_large",
+        "stanza_sentence_empty_dropped",
+        "stanza_offset_mismatch",
+        "entity_span_invalid_dropped",
+        "dependency_head_unresolved",
+        "upstream_diagnostics_preserved",
+        "quality_warning",
+        "invalid_source_file_name",
+        "invalid_config_field"
+      ]
+    },
+    "severity": {
+      "enum": [
+        "info",
+        "warning",
+        "error"
+      ]
+    },
+    "message": {
+      "type": "string",
+      "minLength": 1
+    },
+    "entity_type": {
+      "enum": [
+        "document",
+        "book",
+        "chapter",
+        "section",
+        "footnote",
+        "text_unit",
+        "sentence",
+        "token",
+        "word",
+        "entity",
+        "config",
+        "stanza_runtime",
+        "input"
+      ]
+    },
+    "entity_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "field": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "code": {
+            "const": "text_unit_selected"
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "then": {
+        "properties": {
+          "severity": {
+            "const": "info"
+          },
+          "entity_type": {
+            "const": "text_unit"
+          }
+        },
+        "required": [
+          "severity",
+          "entity_type",
+          "entity_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "code": {
+            "const": "text_unit_skipped_by_config"
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "then": {
+        "properties": {
+          "severity": {
+            "const": "info"
+          },
+          "entity_type": {
+            "const": "text_unit"
+          }
+        },
+        "required": [
+          "severity",
+          "entity_type",
+          "entity_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "code": {
+            "const": "text_unit_empty"
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "then": {
+        "properties": {
+          "severity": {
+            "const": "warning"
+          },
+          "entity_type": {
+            "const": "text_unit"
+          }
+        },
+        "required": [
+          "severity",
+          "entity_type",
+          "entity_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "code": {
+            "const": "text_unit_too_large"
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "then": {
+        "properties": {
+          "severity": {
+            "const": "warning"
+          },
+          "entity_type": {
+            "const": "text_unit"
+          }
+        },
+        "required": [
+          "severity",
+          "entity_type",
+          "entity_id",
+          "field"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "code": {
+            "const": "stanza_sentence_empty_dropped"
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "then": {
+        "properties": {
+          "severity": {
+            "const": "warning"
+          },
+          "entity_type": {
+            "const": "sentence"
+          }
+        },
+        "required": [
+          "severity",
+          "entity_type",
+          "entity_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "code": {
+            "const": "stanza_offset_mismatch"
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "then": {
+        "properties": {
+          "severity": {
+            "const": "warning"
+          },
+          "entity_type": {
+            "const": "text_unit"
+          }
+        },
+        "required": [
+          "severity",
+          "entity_type",
+          "entity_id",
+          "field"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "code": {
+            "const": "entity_span_invalid_dropped"
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "then": {
+        "properties": {
+          "severity": {
+            "const": "warning"
+          },
+          "entity_type": {
+            "const": "entity"
+          }
+        },
+        "required": [
+          "severity",
+          "entity_type",
+          "entity_id",
+          "field"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "code": {
+            "const": "dependency_head_unresolved"
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "then": {
+        "properties": {
+          "severity": {
+            "const": "warning"
+          },
+          "entity_type": {
+            "const": "word"
+          }
+        },
+        "required": [
+          "severity",
+          "entity_type",
+          "entity_id",
+          "field"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "code": {
+            "const": "upstream_diagnostics_preserved"
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "then": {
+        "properties": {
+          "severity": {
+            "const": "info"
+          },
+          "entity_type": {
+            "const": "document"
+          }
+        },
+        "required": [
+          "severity",
+          "entity_type"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "code": {
+            "const": "quality_warning"
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "then": {
+        "properties": {
+          "severity": {
+            "const": "warning"
+          },
+          "entity_type": {
+            "const": "text_unit"
+          }
+        },
+        "required": [
+          "severity",
+          "entity_type",
+          "entity_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "code": {
+            "const": "invalid_source_file_name"
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "then": {
+        "properties": {
+          "severity": {
+            "const": "error"
+          },
+          "entity_type": {
+            "const": "input"
+          }
+        },
+        "required": [
+          "severity",
+          "entity_type",
+          "field"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "code": {
+            "const": "invalid_config_field"
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "then": {
+        "properties": {
+          "severity": {
+            "const": "error"
+          },
+          "entity_type": {
+            "const": "config"
+          }
+        },
+        "required": [
+          "severity",
+          "entity_type",
+          "field"
+        ]
+      }
+    }
+  ],
+  "x-registry-version": "stanza_annotator_diagnostics.v2.0",
+  "x-diagnostic-registry": [
+    {
+      "code": "text_unit_selected",
+      "severity": "info",
+      "emission": "optional",
+      "entity_type": "text_unit",
+      "required_fields": [
+        "entity_id"
+      ],
+      "result_impact": "none",
+      "message_template": "Text unit selected for annotation."
+    },
+    {
+      "code": "text_unit_skipped_by_config",
+      "severity": "info",
+      "emission": "optional",
+      "entity_type": "text_unit",
+      "required_fields": [
+        "entity_id"
+      ],
+      "result_impact": "selected title omitted or represented unit skipped",
+      "message_template": "Text unit excluded by content selection config."
+    },
+    {
+      "code": "text_unit_empty",
+      "severity": "warning",
+      "emission": "required",
+      "entity_type": "text_unit",
+      "required_fields": [
+        "entity_id"
+      ],
+      "result_impact": "represented skipped unit with skipped_reason=empty_text",
+      "message_template": "Selected text unit is empty and was skipped."
+    },
+    {
+      "code": "text_unit_too_large",
+      "severity": "warning",
+      "emission": "required",
+      "entity_type": "text_unit",
+      "required_fields": [
+        "entity_id",
+        "field"
+      ],
+      "result_impact": "represented skipped unit with skipped_reason=too_large",
+      "message_template": "Selected text unit exceeds max_text_unit_chars and was skipped."
+    },
+    {
+      "code": "stanza_sentence_empty_dropped",
+      "severity": "warning",
+      "emission": "required",
+      "entity_type": "sentence",
+      "required_fields": [
+        "entity_id"
+      ],
+      "result_impact": "raw sentence dropped",
+      "message_template": "Empty Stanza sentence was dropped."
+    },
+    {
+      "code": "stanza_offset_mismatch",
+      "severity": "warning",
+      "emission": "required",
+      "entity_type": "text_unit",
+      "required_fields": [
+        "entity_id",
+        "field"
+      ],
+      "result_impact": "affected raw item dropped",
+      "message_template": "Raw Stanza offsets do not match source text; item was dropped."
+    },
+    {
+      "code": "entity_span_invalid_dropped",
+      "severity": "warning",
+      "emission": "required",
+      "entity_type": "entity",
+      "required_fields": [
+        "entity_id",
+        "field"
+      ],
+      "result_impact": "entity dropped",
+      "message_template": "Entity span is invalid and was dropped."
+    },
+    {
+      "code": "dependency_head_unresolved",
+      "severity": "warning",
+      "emission": "required",
+      "entity_type": "word",
+      "required_fields": [
+        "entity_id",
+        "field"
+      ],
+      "result_impact": "head_word_id omitted",
+      "message_template": "Dependency head could not be resolved."
+    },
+    {
+      "code": "upstream_diagnostics_preserved",
+      "severity": "info",
+      "emission": "optional",
+      "entity_type": "document",
+      "required_fields": [],
+      "result_impact": "none",
+      "message_template": "Upstream diagnostics were preserved under document.source.upstream_diagnostics."
+    },
+    {
+      "code": "quality_warning",
+      "severity": "warning",
+      "emission": "required",
+      "entity_type": "text_unit",
+      "required_fields": [
+        "entity_id"
+      ],
+      "result_impact": "none",
+      "message_template": "Stanza produced no sentences for a non-empty text unit."
+    },
+    {
+      "code": "invalid_source_file_name",
+      "severity": "error",
+      "emission": "required",
+      "entity_type": "input",
+      "required_fields": [
+        "field"
+      ],
+      "result_impact": "failed result invalid_input",
+      "message_template": "Upstream source file name is unsafe."
+    },
+    {
+      "code": "invalid_config_field",
+      "severity": "error",
+      "emission": "required",
+      "entity_type": "config",
+      "required_fields": [
+        "field"
+      ],
+      "result_impact": "failed result invalid_config",
+      "message_template": "Invalid config field."
+    }
+  ]
+}

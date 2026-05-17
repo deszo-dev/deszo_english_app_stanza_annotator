@@ -16,11 +16,11 @@ CompatibilityMode = Literal[
 ]
 
 STAGE_NAME = "stanza_annotation"
-STAGE_CONTRACT_VERSION = "1"
-OUTPUT_SCHEMA_VERSION = "stanza-annotator-output.v1"
-CONFIG_CONTRACT_VERSION = "stanza-annotator-config.v1"
+STAGE_CONTRACT_VERSION = "2"
+OUTPUT_SCHEMA_VERSION = "stanza_annotator.v2.0"
+CONFIG_CONTRACT_VERSION = "stanza_annotator_config.v2.0"
 PIPELINE_NAME = "stanza_annotator"
-PIPELINE_CONTRACT_VERSION = "1"
+PIPELINE_CONTRACT_VERSION = "2"
 
 
 @dataclass(frozen=True)

@@ -1,0 +1,11 @@
+{
+  "content_selection": {
+    "mode": "custom",
+    "include_chapters": false,
+    "include_front_matter": false,
+    "include_back_matter": false,
+    "include_footnotes": false,
+    "include_chapter_titles": false,
+    "include_section_titles": false
+  }
+}

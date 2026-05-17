@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "registry_version": "stanza_annotator_errors.v2.0",
+  "module": "stanza_annotator",
+  "contract_version": "stanza_annotator.v2.0",
+  "description": "Machine-readable top-level error registry. Codes, CLI exits, JSON emission and recoverable=false are stable within v2.0 unless a new contract version is published.",
+  "error_codes": [
+    {
+      "code": "invalid_config",
+      "recoverable": false,
+      "result_status": "failed",
+      "document_presence": "absent",
+      "diagnostic_presence": "invalid_config_field when field can be identified; otherwise optional",
+      "api_behavior": "structured_failed_result",
+      "cli_exit_code": 4,
+      "cli_json_emission": "yes_if_output_channel_available",
+      "when_emitted": "User config is unreadable, malformed JSON, or fails stanza_annotator_config.v2.0.schema.json.",
+      "coverage_test_ids": [
+        "TC-P1-002"
+      ]
+    },
+    {
+      "code": "invalid_input",
+      "recoverable": false,
+      "result_status": "failed",
+      "document_presence": "absent",
+      "diagnostic_presence": "required when a precise input field can be identified",
+      "api_behavior": "structured_failed_result",
+      "cli_exit_code": 1,
+      "cli_json_emission": "yes_if_output_channel_available",
+      "when_emitted": "Input is JSON-compatible but does not satisfy the supported upstream boundary contract, including forbidden chapters[].paragraphs or unsafe source_file.file_name.",
+      "coverage_test_ids": [
+        "TC-P0-008"
+      ]
+    },
+    {
+      "code": "unsupported_upstream_schema",
+      "recoverable": false,
+      "result_status": "failed",
+      "document_presence": "absent",
+      "diagnostic_presence": "optional",
+      "api_behavior": "structured_failed_result",
+      "cli_exit_code": 1,
+      "cli_json_emission": "yes_if_output_channel_available",
+      "when_emitted": "Input schema_version is missing or not exactly epub_content_extractor.v3.0.",
+      "coverage_test_ids": [
+        "TC-P1-009"
+      ]
+    },
+    {
+      "code": "upstream_epub_extraction_failed",
+      "recoverable": false,
+      "result_status": "failed",
+      "document_presence": "absent",
+      "diagnostic_presence": "optional; upstream diagnostics may be copied into source-safe diagnostics when available",
+      "api_behavior": "structured_failed_result",
+      "cli_exit_code": 1,
+      "cli_json_emission": "yes_if_output_channel_available",
+      "when_emitted": "Upstream result has status=failed.",
+      "coverage_test_ids": [
+        "TC-P1-010"
+      ]
+    },
+    {
+      "code": "no_annotatable_text",
+      "recoverable": false,
+      "result_status": "failed",
+      "document_presence": "absent",
+      "diagnostic_presence": "optional",
+      "api_behavior": "structured_failed_result",
+      "cli_exit_code": 1,
+      "cli_json_emission": "yes_if_output_channel_available",
+      "when_emitted": "Content selection selects zero text units before empty/size skip checks.",
+      "coverage_test_ids": [
+        "TC-P1-011"
+      ]
+    },
+    {
+      "code": "stanza_model_unavailable",
+      "recoverable": false,
+      "result_status": "failed",
+      "document_presence": "absent",
+      "diagnostic_presence": "optional",
+      "api_behavior": "structured_failed_result",
+      "cli_exit_code": 1,
+      "cli_json_emission": "yes_if_output_channel_available",
+      "when_emitted": "Production Stanza adapter cannot load or download the configured English model.",
+      "coverage_test_ids": [
+        "TC-P1-014"
+      ]
+    },
+    {
+      "code": "stanza_runtime_failed",
+      "recoverable": false,
+      "result_status": "failed",
+      "document_presence": "absent",
+      "diagnostic_presence": "required with entity_type=stanza_runtime for adapter exceptions or batch length mismatch",
+      "api_behavior": "structured_failed_result",
+      "cli_exit_code": 1,
+      "cli_json_emission": "yes_if_output_channel_available",
+      "when_emitted": "Adapter raises, returns non-document values, or returns a count different from the submitted batch size.",
+      "coverage_test_ids": [
+        "TC-P0-009",
+        "TC-P0-010"
+      ]
+    },
+    {
+      "code": "output_too_large",
+      "recoverable": false,
+      "result_status": "failed",
+      "document_presence": "absent",
+      "diagnostic_presence": "optional",
+      "api_behavior": "structured_failed_result",
+      "cli_exit_code": 1,
+      "cli_json_emission": "yes_if_output_channel_available",
+      "when_emitted": "Serialized JSON result exceeds max_output_json_bytes before it is written.",
+      "coverage_test_ids": [
+        "TC-P1-012"
+      ]
+    },
+    {
+      "code": "output_write_failed",
+      "recoverable": false,
+      "result_status": "failed",
+      "document_presence": "absent",
+      "diagnostic_presence": "not_serialized_when_selected_output_channel_unavailable",
+      "api_behavior": "not returned by annotate_epub_result; CLI-only when writing result fails",
+      "cli_exit_code": 3,
+      "cli_json_emission": "no_when_selected_output_channel_unavailable",
+      "when_emitted": "CLI selected output channel cannot be written or atomically replaced.",
+      "coverage_test_ids": [
+        "TC-P1-003"
+      ]
+    },
+    {
+      "code": "internal_error",
+      "recoverable": false,
+      "result_status": "failed",
+      "document_presence": "absent",
+      "diagnostic_presence": "optional",
+      "api_behavior": "structured_failed_result when possible",
+      "cli_exit_code": 99,
+      "cli_json_emission": "yes_only_if_result_construction_and_output_channel_available",
+      "when_emitted": "Unexpected implementation defect that is not a documented domain failure.",
+      "coverage_test_ids": [
+        "TC-P1-013"
+      ]
+    }
+  ]
+}

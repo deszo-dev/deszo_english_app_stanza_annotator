@@ -1,0 +1,1349 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json",
+  "title": "StanzaAnnotationResult v2.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "diagnostics",
+    "annotation"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "stanza_annotator.v2.0"
+    },
+    "status": {
+      "enum": [
+        "succeeded",
+        "failed"
+      ]
+    },
+    "document": {
+      "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/AnnotatedEpubDocument"
+    },
+    "error": {
+      "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/StanzaAnnotationError"
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "$ref": "https://deszo.local/schema/stanza_annotator_diagnostics.v2.0.schema.json"
+      }
+    },
+    "annotation": {
+      "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/StanzaAnnotationInfo"
+    },
+    "debug": {
+      "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/StanzaDebugInfo"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "succeeded"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "required": [
+          "document"
+        ],
+        "not": {
+          "required": [
+            "error"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "failed"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "required": [
+          "error"
+        ],
+        "not": {
+          "required": [
+            "document"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "annotation": {
+            "properties": {
+              "config": {
+                "properties": {
+                  "include_debug": {
+                    "const": false
+                  }
+                },
+                "required": [
+                  "include_debug"
+                ]
+              }
+            },
+            "required": [
+              "config"
+            ]
+          }
+        },
+        "required": [
+          "annotation"
+        ]
+      },
+      "then": {
+        "not": {
+          "required": [
+            "debug"
+          ]
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "StanzaAnnotationError": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message",
+        "recoverable"
+      ],
+      "properties": {
+        "code": {
+          "enum": [
+            "invalid_config",
+            "invalid_input",
+            "unsupported_upstream_schema",
+            "upstream_epub_extraction_failed",
+            "no_annotatable_text",
+            "stanza_model_unavailable",
+            "stanza_runtime_failed",
+            "output_too_large",
+            "output_write_failed",
+            "internal_error"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recoverable": {
+          "const": false
+        }
+      },
+      "description": "Top-level failure object. Error-code semantics are mirrored in stanza_annotator_errors.v2.0.json."
+    },
+    "StanzaAnnotationInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "annotator_version",
+        "stanza_version",
+        "started_at",
+        "finished_at",
+        "duration_ms",
+        "config",
+        "summary"
+      ],
+      "properties": {
+        "annotator_version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$"
+        },
+        "stanza_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "started_at": {
+          "type": "string",
+          "pattern": "Z$"
+        },
+        "finished_at": {
+          "type": "string",
+          "pattern": "Z$"
+        },
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "config": {
+          "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/EffectiveStanzaAnnotatorConfigSnapshot"
+        },
+        "summary": {
+          "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/StanzaAnnotationSummary"
+        }
+      }
+    },
+    "StanzaAnnotationSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text_unit_count",
+        "annotated_text_unit_count",
+        "skipped_text_unit_count",
+        "chapter_count",
+        "front_matter_section_count",
+        "back_matter_section_count",
+        "paragraph_count",
+        "footnote_count",
+        "sentence_count",
+        "token_count",
+        "word_count",
+        "entity_count",
+        "warning_count",
+        "error_count"
+      ],
+      "properties": {
+        "text_unit_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "annotated_text_unit_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "skipped_text_unit_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "chapter_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "front_matter_section_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "back_matter_section_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "paragraph_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of copied upstream paragraph objects in front_matter/back_matter only. This is not an annotation-target count and excludes chapters because chapters[].paragraphs is not supported."
+        },
+        "footnote_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sentence_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "token_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "word_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "entity_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "warning_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "error_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "AnnotatedEpubDocument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "book"
+      ],
+      "properties": {
+        "source": {
+          "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/StanzaAnnotationSource"
+        },
+        "book": {
+          "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/AnnotatedEpubBook"
+        }
+      }
+    },
+    "StanzaAnnotationSource": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "upstream_schema_version",
+        "upstream_extractor_version",
+        "upstream_summary",
+        "upstream_diagnostics",
+        "source_book_fingerprint",
+        "annotation_input_fingerprint"
+      ],
+      "properties": {
+        "upstream_schema_version": {
+          "const": "epub_content_extractor.v3.0"
+        },
+        "upstream_extractor_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "upstream_summary": {
+          "type": "object"
+        },
+        "upstream_diagnostics": {
+          "type": "array"
+        },
+        "source_file": {
+          "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/EpubSourceFile"
+        },
+        "source_book_fingerprint": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "annotation_input_fingerprint": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      }
+    },
+    "EpubSourceFile": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "file_name"
+      ],
+      "properties": {
+        "file_name": {
+          "type": "string",
+          "minLength": 1,
+          "not": {
+            "anyOf": [
+              {
+                "pattern": "(^/|^[A-Za-z]:|[\\\\/]|\\.\\.)"
+              },
+              {
+                "pattern": "[\\u0000-\\u001F\\u007F]"
+              }
+            ]
+          }
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "epub_version": {
+          "type": "string"
+        }
+      }
+    },
+    "AnnotatedEpubBook": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "title",
+        "subtitle",
+        "language",
+        "authors",
+        "contributors",
+        "metadata",
+        "front_matter",
+        "chapters",
+        "back_matter",
+        "footnotes",
+        "table_of_contents",
+        "assets"
+      ],
+      "properties": {
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "subtitle": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "language": {
+          "const": "en"
+        },
+        "authors": {
+          "type": "array"
+        },
+        "contributors": {
+          "type": "array"
+        },
+        "metadata": {
+          "type": "object"
+        },
+        "front_matter": {
+          "type": "array",
+          "items": {
+            "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/AnnotatedEpubSection"
+          }
+        },
+        "chapters": {
+          "type": "array",
+          "items": {
+            "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/AnnotatedEpubChapter"
+          }
+        },
+        "back_matter": {
+          "type": "array",
+          "items": {
+            "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/AnnotatedEpubSection"
+          }
+        },
+        "footnotes": {
+          "type": "array",
+          "items": {
+            "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/AnnotatedEpubFootnote"
+          }
+        },
+        "table_of_contents": {
+          "type": "array"
+        },
+        "assets": {
+          "type": "array"
+        }
+      }
+    },
+    "AnnotatedEpubSection": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "type",
+        "text",
+        "paragraphs",
+        "footnotes",
+        "included_in_canonical_text"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "title_annotation": {
+          "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/TextUnitAnnotation"
+        },
+        "text": {
+          "type": "string"
+        },
+        "paragraphs": {
+          "type": "array",
+          "items": {
+            "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/EpubParagraph"
+          }
+        },
+        "footnotes": {
+          "type": "array",
+          "items": {
+            "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/AnnotatedEpubFootnote"
+          }
+        },
+        "included_in_canonical_text": {
+          "type": "boolean",
+          "description": "Required structural copy-through field from epub_content_extractor.v3.0."
+        },
+        "text_annotation_status": {
+          "enum": [
+            "annotated",
+            "skipped"
+          ],
+          "description": "Status for the optional section.text annotation. Section paragraphs are copied unchanged and are not annotation targets."
+        },
+        "text_skipped_reason": {
+          "enum": [
+            "excluded_by_config",
+            "empty_text",
+            "too_large"
+          ]
+        },
+        "text_annotation": {
+          "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/TextUnitAnnotation"
+        },
+        "title_annotation_status": {
+          "enum": [
+            "annotated",
+            "skipped"
+          ],
+          "description": "Status for optional annotation of section.title; emitted only when the title is selected or explicitly represented as skipped."
+        },
+        "title_skipped_reason": {
+          "enum": [
+            "excluded_by_config",
+            "empty_text",
+            "too_large"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "text_annotation_status": {
+                "const": "annotated"
+              }
+            },
+            "required": [
+              "text_annotation_status"
+            ]
+          },
+          "then": {
+            "required": [
+              "text_annotation"
+            ],
+            "not": {
+              "required": [
+                "text_skipped_reason"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "text_annotation_status": {
+                "const": "skipped"
+              }
+            },
+            "required": [
+              "text_annotation_status"
+            ]
+          },
+          "then": {
+            "required": [
+              "text_skipped_reason"
+            ],
+            "not": {
+              "required": [
+                "text_annotation"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "title_annotation_status": {
+                "const": "annotated"
+              }
+            },
+            "required": [
+              "title_annotation_status"
+            ]
+          },
+          "then": {
+            "required": [
+              "title_annotation"
+            ],
+            "not": {
+              "required": [
+                "title_skipped_reason"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "title_annotation_status": {
+                "const": "skipped"
+              }
+            },
+            "required": [
+              "title_annotation_status"
+            ]
+          },
+          "then": {
+            "required": [
+              "title_skipped_reason"
+            ],
+            "not": {
+              "required": [
+                "title_annotation"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "AnnotatedEpubChapter": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "id",
+        "chapter_number",
+        "type",
+        "text",
+        "footnotes",
+        "text_annotation_status"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "chapter_number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "type": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "title_annotation": {
+          "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/TextUnitAnnotation"
+        },
+        "text": {
+          "type": "string"
+        },
+        "footnotes": {
+          "type": "array",
+          "items": {
+            "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/AnnotatedEpubFootnote"
+          }
+        },
+        "text_annotation_status": {
+          "enum": [
+            "annotated",
+            "skipped"
+          ],
+          "description": "Status for the annotation of chapter.text. Chapter paragraphs are not part of the upstream v3.0 production schema and MUST NOT be emitted here."
+        },
+        "text_skipped_reason": {
+          "enum": [
+            "excluded_by_config",
+            "empty_text",
+            "too_large"
+          ]
+        },
+        "text_annotation": {
+          "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/TextUnitAnnotation"
+        },
+        "title_annotation_status": {
+          "enum": [
+            "annotated",
+            "skipped"
+          ],
+          "description": "Status for optional annotation of chapter.title; emitted only when the title is selected or explicitly represented as skipped."
+        },
+        "title_skipped_reason": {
+          "enum": [
+            "excluded_by_config",
+            "empty_text",
+            "too_large"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "not": {
+            "required": [
+              "paragraphs"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "text_annotation_status": {
+                "const": "annotated"
+              }
+            },
+            "required": [
+              "text_annotation_status"
+            ]
+          },
+          "then": {
+            "required": [
+              "text_annotation"
+            ],
+            "not": {
+              "required": [
+                "text_skipped_reason"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "text_annotation_status": {
+                "const": "skipped"
+              }
+            },
+            "required": [
+              "text_annotation_status"
+            ]
+          },
+          "then": {
+            "required": [
+              "text_skipped_reason"
+            ],
+            "not": {
+              "required": [
+                "text_annotation"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "title_annotation_status": {
+                "const": "annotated"
+              }
+            },
+            "required": [
+              "title_annotation_status"
+            ]
+          },
+          "then": {
+            "required": [
+              "title_annotation"
+            ],
+            "not": {
+              "required": [
+                "title_skipped_reason"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "title_annotation_status": {
+                "const": "skipped"
+              }
+            },
+            "required": [
+              "title_annotation_status"
+            ]
+          },
+          "then": {
+            "required": [
+              "title_skipped_reason"
+            ],
+            "not": {
+              "required": [
+                "title_annotation"
+              ]
+            }
+          }
+        }
+      ],
+      "description": "Annotated v2.0 chapter object. chapters[].paragraphs is forbidden because epub_content_extractor.v3.0 exposes chapter body only as chapter.text."
+    },
+    "AnnotatedEpubFootnote": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "text",
+        "annotation_status"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "marker": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "paragraph_number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "annotation_status": {
+          "enum": [
+            "annotated",
+            "skipped"
+          ]
+        },
+        "skipped_reason": {
+          "enum": [
+            "excluded_by_config",
+            "empty_text",
+            "too_large"
+          ]
+        },
+        "annotation": {
+          "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/TextUnitAnnotation"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "annotation_status": {
+                "const": "annotated"
+              }
+            },
+            "required": [
+              "annotation_status"
+            ]
+          },
+          "then": {
+            "required": [
+              "annotation"
+            ],
+            "not": {
+              "required": [
+                "skipped_reason"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "annotation_status": {
+                "const": "skipped"
+              }
+            },
+            "required": [
+              "annotation_status"
+            ]
+          },
+          "then": {
+            "required": [
+              "skipped_reason"
+            ],
+            "not": {
+              "required": [
+                "annotation"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "TextUnitAnnotation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text_unit_id",
+        "ref",
+        "text",
+        "sentences",
+        "entities",
+        "summary"
+      ],
+      "properties": {
+        "text_unit_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ref": {
+          "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/TextUnitRef"
+        },
+        "text": {
+          "type": "string"
+        },
+        "sentences": {
+          "type": "array",
+          "items": {
+            "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/AnnotatedSentence"
+          }
+        },
+        "entities": {
+          "type": "array",
+          "items": {
+            "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/AnnotatedEntity"
+          }
+        },
+        "summary": {
+          "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/TextUnitAnnotationSummary"
+        }
+      }
+    },
+    "TextUnitRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text_unit_id",
+        "kind",
+        "owner_type",
+        "owner_id",
+        "source_field"
+      ],
+      "properties": {
+        "text_unit_id": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "chapter_title",
+            "section_title",
+            "chapter_text",
+            "section_text",
+            "footnote"
+          ]
+        },
+        "owner_type": {
+          "enum": [
+            "chapter",
+            "front_matter",
+            "back_matter",
+            "book"
+          ]
+        },
+        "owner_id": {
+          "type": "string"
+        },
+        "paragraph_number": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Allowed only for footnote refs when upstream exposes an approximate paragraph link; not used for chapter paragraph annotation."
+        },
+        "footnote_id": {
+          "type": "string"
+        },
+        "source_field": {
+          "enum": [
+            "title",
+            "text"
+          ]
+        }
+      }
+    },
+    "TextUnitAnnotationSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sentence_count",
+        "token_count",
+        "word_count",
+        "entity_count"
+      ],
+      "properties": {
+        "sentence_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "token_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "word_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "entity_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "AnnotatedSentence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "text_unit_id",
+        "sentence_number",
+        "text",
+        "start_char",
+        "end_char",
+        "tokens",
+        "words"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "text_unit_id": {
+          "type": "string"
+        },
+        "sentence_number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "text": {
+          "type": "string"
+        },
+        "start_char": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "end_char": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tokens": {
+          "type": "array",
+          "items": {
+            "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/AnnotatedToken"
+          }
+        },
+        "words": {
+          "type": "array",
+          "items": {
+            "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/AnnotatedWord"
+          }
+        }
+      }
+    },
+    "AnnotatedToken": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "text_unit_id",
+        "sentence_id",
+        "token_number",
+        "text",
+        "start_char",
+        "end_char",
+        "word_ids"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "text_unit_id": {
+          "type": "string"
+        },
+        "sentence_id": {
+          "type": "string"
+        },
+        "token_number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "text": {
+          "type": "string"
+        },
+        "start_char": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "end_char": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "word_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "AnnotatedWord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "text_unit_id",
+        "sentence_id",
+        "word_number",
+        "text",
+        "lemma",
+        "upos",
+        "head",
+        "deprel",
+        "start_char",
+        "end_char"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "text_unit_id": {
+          "type": "string"
+        },
+        "sentence_id": {
+          "type": "string"
+        },
+        "word_number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lemma": {
+          "type": "string",
+          "minLength": 1
+        },
+        "upos": {
+          "type": "string",
+          "minLength": 1
+        },
+        "xpos": {
+          "type": "string"
+        },
+        "feats": {
+          "type": "string"
+        },
+        "head": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "head_word_id": {
+          "type": "string"
+        },
+        "deprel": {
+          "type": "string",
+          "minLength": 1
+        },
+        "start_char": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "end_char": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "AnnotatedEntity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "text_unit_id",
+        "entity_number",
+        "text",
+        "type",
+        "start_char",
+        "end_char"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "text_unit_id": {
+          "type": "string"
+        },
+        "entity_number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "start_char": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "end_char": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "EffectiveStanzaAnnotatorConfigSnapshot": {
+      "allOf": [
+        {
+          "$ref": "https://deszo.local/schema/stanza_annotator_config.v2.0.schema.json"
+        },
+        {
+          "not": {
+            "required": [
+              "debug_dir"
+            ]
+          }
+        }
+      ],
+      "required": [
+        "language",
+        "processors",
+        "use_gpu",
+        "tokenize_pretokenized",
+        "auto_download",
+        "content_selection",
+        "batch_size",
+        "max_text_unit_chars",
+        "max_output_json_bytes",
+        "include_debug",
+        "logging"
+      ],
+      "properties": {
+        "content_selection": {
+          "required": [
+            "mode",
+            "include_chapters",
+            "include_front_matter",
+            "include_back_matter",
+            "include_footnotes",
+            "include_chapter_titles",
+            "include_section_titles"
+          ]
+        },
+        "logging": {
+          "required": [
+            "enabled",
+            "level"
+          ]
+        }
+      },
+      "description": "Fully materialized production-safe config snapshot emitted under annotation.config. CLI-only debug_dir is forbidden here. All behavior-affecting defaults MUST be present."
+    },
+    "DebugArray": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Debug-only array of redacted diagnostic objects. Exact item fields are non-production and implementation-specific."
+    },
+    "StanzaDebugInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "text_unit_plan": {
+          "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/DebugArray"
+        },
+        "raw_stanza_summaries": {
+          "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/DebugArray"
+        },
+        "adapter_timings": {
+          "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/DebugArray"
+        },
+        "projection_warnings": {
+          "$ref": "https://deszo.local/schema/stanza_annotator.v2.0.schema.json#/$defs/DebugArray"
+        },
+        "redaction": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "applied",
+            "text_preview_max_chars"
+          ],
+          "properties": {
+            "applied": {
+              "type": "boolean"
+            },
+            "text_preview_max_chars": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000
+            }
+          }
+        }
+      },
+      "description": "Optional debug-only payload. Production consumers must ignore it. Unknown top-level debug fields are rejected to prevent accidental internal data dumps."
+    },
+    "EpubParagraph": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "text"
+      ],
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "paragraph_number": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "description": "Unannotated paragraph copied only from upstream front_matter/back_matter sections. Paragraph objects are structural pass-through only and MUST NOT contain stanza annotation fields.",
+      "allOf": [
+        {
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "annotation_status"
+                ]
+              },
+              {
+                "required": [
+                  "skipped_reason"
+                ]
+              },
+              {
+                "required": [
+                  "annotation"
+                ]
+              },
+              {
+                "required": [
+                  "text_annotation_status"
+                ]
+              },
+              {
+                "required": [
+                  "text_skipped_reason"
+                ]
+              },
+              {
+                "required": [
+                  "text_annotation"
+                ]
+              },
+              {
+                "required": [
+                  "title_annotation_status"
+                ]
+              },
+              {
+                "required": [
+                  "title_skipped_reason"
+                ]
+              },
+              {
+                "required": [
+                  "title_annotation"
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

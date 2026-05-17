@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deszo.local/schema/stanza_annotator_config.v2.0.schema.json",
+  "title": "StanzaAnnotatorConfig v2.0",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "language": {
+      "const": "en",
+      "default": "en"
+    },
+    "processors": {
+      "const": "tokenize,mwt,pos,lemma,depparse,ner",
+      "default": "tokenize,mwt,pos,lemma,depparse,ner"
+    },
+    "use_gpu": {
+      "type": "boolean",
+      "default": false
+    },
+    "tokenize_pretokenized": {
+      "const": false,
+      "default": false
+    },
+    "auto_download": {
+      "type": "boolean",
+      "default": true
+    },
+    "content_selection": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": [
+            "chapter_text_only",
+            "canonical_from_epub_config",
+            "all_readable",
+            "chapters_only",
+            "custom"
+          ],
+          "default": "chapter_text_only"
+        },
+        "include_chapters": {
+          "type": "boolean",
+          "default": false
+        },
+        "include_front_matter": {
+          "type": "boolean",
+          "default": false
+        },
+        "include_back_matter": {
+          "type": "boolean",
+          "default": false
+        },
+        "include_footnotes": {
+          "type": "boolean",
+          "default": false
+        },
+        "include_chapter_titles": {
+          "type": "boolean",
+          "default": false
+        },
+        "include_section_titles": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "required": [],
+      "default": {
+        "mode": "chapter_text_only"
+      }
+    },
+    "max_text_unit_chars": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000,
+      "default": 100000
+    },
+    "max_output_json_bytes": {
+      "type": "integer",
+      "minimum": 1024,
+      "maximum": 1073741824,
+      "default": 1073741824
+    },
+    "include_debug": {
+      "type": "boolean",
+      "default": false
+    },
+    "logging": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "level": {
+          "enum": [
+            "debug",
+            "info",
+            "warning",
+            "error"
+          ],
+          "default": "info"
+        }
+      },
+      "required": [
+        "enabled",
+        "level"
+      ],
+      "default": {
+        "enabled": false,
+        "level": "info"
+      }
+    },
+    "batch_size": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1024,
+      "default": 32,
+      "description": "Maximum number of selected text units submitted to the project-owned Stanza adapter in one batch. The implementation MUST preserve one output document per input text unit and original text-unit order."
+    }
+  },
+  "required": [],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "content_selection": {
+            "properties": {
+              "mode": {
+                "const": "custom"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          }
+        },
+        "required": [
+          "content_selection"
+        ]
+      },
+      "then": {
+        "properties": {
+          "content_selection": {
+            "required": [
+              "mode",
+              "include_chapters",
+              "include_front_matter",
+              "include_back_matter",
+              "include_footnotes",
+              "include_chapter_titles",
+              "include_section_titles"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "description": "debug_dir is intentionally not part of StanzaAnnotatorConfig; it is accepted only as the CLI --debug-dir option. User-supplied config is a partial override object; omitted fields are defaulted into the emitted effective config snapshot."
+}

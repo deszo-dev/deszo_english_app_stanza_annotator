@@ -1,0 +1,79 @@
+{
+  "schema_version": "epub_content_extractor.v3.0",
+  "status": "succeeded",
+  "book": {
+    "title": "Demo Book",
+    "subtitle": null,
+    "language": "en",
+    "authors": [],
+    "contributors": [],
+    "metadata": {
+      "identifiers": [],
+      "publisher": null,
+      "published_at": null,
+      "modified_at": null,
+      "description": null,
+      "rights": null,
+      "subjects": [],
+      "source_file": {
+        "file_name": "demo.epub",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "size_bytes": 1000,
+        "epub_version": "3.0"
+      }
+    },
+    "front_matter": [],
+    "chapters": [
+      {
+        "id": "chapter_001",
+        "chapter_number": 1,
+        "type": "chapter",
+        "title": "Chapter One",
+        "text": "abcdefghij",
+        "footnotes": []
+      }
+    ],
+    "back_matter": [],
+    "footnotes": [],
+    "table_of_contents": [],
+    "assets": []
+  },
+  "diagnostics": [],
+  "extraction": {
+    "extractor_version": "3.0.0",
+    "started_at": "2026-05-08T10:00:00Z",
+    "finished_at": "2026-05-08T10:00:01Z",
+    "duration_ms": 1000,
+    "config": {
+      "include_front_matter_in_canonical_text": false,
+      "include_back_matter_in_canonical_text": false,
+      "include_footnotes_in_canonical_text": false,
+      "include_chapter_titles_in_canonical_text": true,
+      "include_section_titles_in_canonical_text": false,
+      "max_epub_size_bytes": 104857600,
+      "max_html_document_size_bytes": 10485760,
+      "max_text_block_chars": 100000,
+      "pipeline_timeout_seconds": 120,
+      "html_parse_timeout_seconds": 20,
+      "max_archive_uncompressed_bytes": 524288000,
+      "max_archive_entry_count": 10000,
+      "max_archive_compression_ratio": 100,
+      "max_toc_depth": 8,
+      "max_diagnostic_count": 1000,
+      "max_output_json_bytes": 524288000,
+      "include_debug": false
+    },
+    "summary": {
+      "chapter_count": 1,
+      "front_matter_section_count": 0,
+      "back_matter_section_count": 0,
+      "paragraph_count": 0,
+      "footnote_count": 0,
+      "total_text_chars": 10,
+      "canonical_text_chars": 23,
+      "removed_section_count": 0,
+      "warning_count": 0,
+      "error_count": 0
+    }
+  }
+}

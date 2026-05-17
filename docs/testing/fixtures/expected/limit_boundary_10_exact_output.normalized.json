@@ -1,0 +1,174 @@
+{
+  "schema_version": "stanza_annotator.v2.0",
+  "status": "succeeded",
+  "document": {
+    "source": {
+      "upstream_schema_version": "epub_content_extractor.v3.0",
+      "upstream_extractor_version": "3.0.0",
+      "upstream_summary": {
+        "chapter_count": 1,
+        "front_matter_section_count": 0,
+        "back_matter_section_count": 0,
+        "paragraph_count": 0,
+        "footnote_count": 0,
+        "total_text_chars": 10,
+        "canonical_text_chars": 23,
+        "removed_section_count": 0,
+        "warning_count": 0,
+        "error_count": 0
+      },
+      "upstream_diagnostics": [],
+      "source_file": {
+        "file_name": "demo.epub",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "size_bytes": 1000,
+        "epub_version": "3.0"
+      },
+      "source_book_fingerprint": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "annotation_input_fingerprint": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    "book": {
+      "title": "Demo Book",
+      "subtitle": null,
+      "language": "en",
+      "authors": [],
+      "contributors": [],
+      "metadata": {
+        "identifiers": [],
+        "publisher": null,
+        "published_at": null,
+        "modified_at": null,
+        "description": null,
+        "rights": null,
+        "subjects": [],
+        "source_file": {
+          "file_name": "demo.epub",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "size_bytes": 1000,
+          "epub_version": "3.0"
+        }
+      },
+      "front_matter": [],
+      "chapters": [
+        {
+          "id": "chapter_001",
+          "chapter_number": 1,
+          "type": "chapter",
+          "title": "Chapter One",
+          "text": "abcdefghij",
+          "footnotes": [],
+          "text_annotation_status": "annotated",
+          "text_annotation": {
+            "text_unit_id": "chapter_001:text",
+            "ref": {
+              "text_unit_id": "chapter_001:text",
+              "kind": "chapter_text",
+              "owner_type": "chapter",
+              "owner_id": "chapter_001",
+              "source_field": "text"
+            },
+            "text": "abcdefghij",
+            "sentences": [
+              {
+                "id": "chapter_001:text:s0001",
+                "text_unit_id": "chapter_001:text",
+                "sentence_number": 1,
+                "text": "abcdefghij",
+                "start_char": 0,
+                "end_char": 10,
+                "tokens": [
+                  {
+                    "id": "chapter_001:text:s0001:t0001",
+                    "text_unit_id": "chapter_001:text",
+                    "sentence_id": "chapter_001:text:s0001",
+                    "token_number": 1,
+                    "text": "abcdefghij",
+                    "start_char": 0,
+                    "end_char": 10,
+                    "word_ids": [
+                      "chapter_001:text:s0001:w0001"
+                    ]
+                  }
+                ],
+                "words": [
+                  {
+                    "id": "chapter_001:text:s0001:w0001",
+                    "text_unit_id": "chapter_001:text",
+                    "sentence_id": "chapter_001:text:s0001",
+                    "word_number": 1,
+                    "text": "abcdefghij",
+                    "lemma": "abcdefghij",
+                    "upos": "X",
+                    "head": 0,
+                    "deprel": "root",
+                    "start_char": 0,
+                    "end_char": 10
+                  }
+                ]
+              }
+            ],
+            "entities": [],
+            "summary": {
+              "sentence_count": 1,
+              "token_count": 1,
+              "word_count": 1,
+              "entity_count": 0
+            }
+          }
+        }
+      ],
+      "back_matter": [],
+      "footnotes": [],
+      "table_of_contents": [],
+      "assets": []
+    }
+  },
+  "diagnostics": [],
+  "annotation": {
+    "annotator_version": "2.0.0",
+    "stanza_version": "1.8.2",
+    "started_at": "2000-01-01T00:00:00Z",
+    "finished_at": "2000-01-01T00:00:00Z",
+    "duration_ms": 0,
+    "config": {
+      "language": "en",
+      "processors": "tokenize,mwt,pos,lemma,depparse,ner",
+      "use_gpu": false,
+      "tokenize_pretokenized": false,
+      "auto_download": true,
+      "content_selection": {
+        "mode": "chapter_text_only",
+        "include_chapters": false,
+        "include_front_matter": false,
+        "include_back_matter": false,
+        "include_footnotes": false,
+        "include_chapter_titles": false,
+        "include_section_titles": false
+      },
+      "batch_size": 32,
+      "max_text_unit_chars": 10,
+      "max_output_json_bytes": 1073741824,
+      "include_debug": false,
+      "logging": {
+        "enabled": false,
+        "level": "info"
+      }
+    },
+    "summary": {
+      "text_unit_count": 1,
+      "annotated_text_unit_count": 1,
+      "skipped_text_unit_count": 0,
+      "chapter_count": 1,
+      "front_matter_section_count": 0,
+      "back_matter_section_count": 0,
+      "paragraph_count": 0,
+      "footnote_count": 0,
+      "sentence_count": 1,
+      "token_count": 1,
+      "word_count": 1,
+      "entity_count": 0,
+      "warning_count": 0,
+      "error_count": 0
+    }
+  }
+}

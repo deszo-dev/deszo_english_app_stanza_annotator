@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "stanza-annotator"
-version = "0.1.0"
-description = "A Stanza-based linguistic annotation module for prepared English text."
+version = "2.0.0"
+description = "A Stanza-based linguistic annotation module for structured epub_content_extractor results."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
@@ -14,7 +14,7 @@ authors = [
 ]
 dependencies = [
   "pydantic>=2.7,<3",
-  "stanza>=1.8,<2"
+  "stanza>=1.8,<1.12"
 ]
 
 [project.optional-dependencies]
@@ -26,7 +26,7 @@ dev = [
 ]
 
 [project.scripts]
-stanza-annotate = "stanza_annotator.cli:main"
+stanza-annotator = "stanza_annotator.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["stanza_annotator*"]
